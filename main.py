@@ -63,6 +63,21 @@ def read_usuario(usuario_id: int, session: SessionDep) -> Usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return usuario
 
+@app.put("/usuarios/{usuario_id}", response_model=Usuario)
+def update_usuario(usuario_id: int, usuario: Usuario, session: SessionDep) -> Usuario:
+    db_usuario = session.get(Usuario, usuario_id)
+    if not db_usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    db_usuario.nombre = usuario.nombre
+    db_usuario.email = usuario.email
+    db_usuario.edad = usuario.edad
+    db_usuario.direccion = usuario.direccion
+
+    session.commit()
+    session.refresh(db_usuario)
+    return db_usuario
+
 
 @app.delete("/usuarios/{usuario_id}")
 def delete_usuario(usuario_id: int, session: SessionDep):
