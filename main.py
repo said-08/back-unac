@@ -4,15 +4,15 @@ from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 
 
-class Producto(SQLModel, table=True):
+class Usuario(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     nombre: str = Field(index=True)
-    peso: Optional[float] = Field(default=None, index=True)
-    precio: float
-    categoria: str = Field(index=True)
+    email: str = Field(index=True, unique=True)
+    edad: Optional[int] = Field(default=None)
+    direccion: Optional[str] = Field(default=None)
 
 
-sqlite_file_name = "database.db"
+sqlite_file_name = "usuarios.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
 connect_args = {"check_same_thread": False}
@@ -38,37 +38,37 @@ def on_startup():
     create_db_and_tables()
 
 
-@app.post("/productos/")
-def create_producto(producto: Producto, session: SessionDep) -> Producto:
-    session.add(producto)
+@app.post("/usuarios/")
+def create_usuario(usuario: Usuario, session: SessionDep) -> Usuario:
+    session.add(usuario)
     session.commit()
-    session.refresh(producto)
-    return producto
+    session.refresh(usuario)
+    return usuario
 
 
-@app.get("/productos/")
-def read_productos(
+@app.get("/usuarios/")
+def read_usuarios(
     session: SessionDep,
     offset: int = 0,
     limit: Annotated[int, Query(le=100)] = 100,
-) -> list[Producto]:
-    productos = session.exec(select(Producto).offset(offset).limit(limit)).all()
-    return productos
+) -> list[Usuario]:
+    usuarios = session.exec(select(Usuario).offset(offset).limit(limit)).all()
+    return usuarios
 
 
-@app.get("/productos/{producto_id}")
-def read_producto(producto_id: int, session: SessionDep) -> Producto:
-    producto = session.get(Producto, producto_id)
-    if not producto:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
-    return producto
+@app.get("/usuarios/{usuario_id}")
+def read_usuario(usuario_id: int, session: SessionDep) -> Usuario:
+    usuario = session.get(Usuario, usuario_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return usuario
 
 
-@app.delete("/productos/{producto_id}")
-def delete_producto(producto_id: int, session: SessionDep):
-    producto = session.get(Producto, producto_id)
-    if not producto:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
-    session.delete(producto)
+@app.delete("/usuarios/{usuario_id}")
+def delete_usuario(usuario_id: int, session: SessionDep):
+    usuario = session.get(Usuario, usuario_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    session.delete(usuario)
     session.commit()
     return {"ok": True}
